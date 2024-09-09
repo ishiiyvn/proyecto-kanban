@@ -1,12 +1,24 @@
-<h1>Signin</h1>
+{% load static %}
 
-{{error}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <h1>Kanban Web</h1>
+    {{error}}
+    <form action ="/signin/" method="POST">
+        <h2>Sign in</h2>
+        {%csrf_token%}
+        {{form.as_p}}
+        <button>
+            Confirm
+        </button>
+    </form>    
+</body>
+</html>
 
-<form action ="/signin/" method="POST">
-    {%csrf_token%}
-    {{form.as_p}}
-    <button>
-        Signin
-    </button>
-
-</form>
