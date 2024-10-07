@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+
+{% block content %}
+    <h1>Create task</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="id_name">Workspace Name:</label>
+            {{ form.name|add_class:"form-control" }}
+        </div>
+    
+        <div class="form-group">
+            <label for="id_members">Available Members:</label>
+            <select id="available_users" class="form-control" size="10" multiple>
+                {% for user in form.members.field.queryset %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    
+        <div class="form-group">
+            <label for="id_selected_members">Selected Members:</label>
+            <select id="selected_users" class="form-control" name="members" size="10" multiple></select>
+        </div>
+    
+        <div class="form-group">
+            <button type="button" id="add_user" class="btn btn-primary">Add</button>
+            <button type="button" id="remove_user" class="btn btn-danger">Remove</button>
+        </div>
+    
+        <div class="form-group">
+            <button type="submit" class="btn btn-success">Create Workspace</button>
+        </div>
+    </form>
+    
+    <script>
+        document.getElementById('add_user').onclick = function () {
+            var available = document.getElementById('available_users');
+            var selected = document.getElementById('selected_users');
+            while (available.selectedOptions.length > 0) {
+                selected.appendChild(available.selectedOptions[0]);
+            }
+        };
+    
+        document.getElementById('remove_user').onclick = function () {
+            var selected = document.getElementById('selected_users');
+            while (selected.selectedOptions.length > 0) {
+                selected.remove(selected.selectedOptions[0].index);
+            }
+        };
+    </script>
+    
+{% endblock %}
