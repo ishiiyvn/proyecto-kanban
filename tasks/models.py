@@ -21,3 +21,12 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title + ' - by ' + self.user.username
+
+class Board(models.Model):
+    name = models.CharField(max_length=25)
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+

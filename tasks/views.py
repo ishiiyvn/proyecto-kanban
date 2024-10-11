@@ -3,8 +3,8 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
-from .forms import TaskForm, WorkspaceForm
-from .models import Task, Workspace
+from .forms import TaskForm, WorkspaceForm, BoardForm
+from .models import Board, Task, Workspace
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 
@@ -150,4 +150,54 @@ def create_workspace(request):
                 'form' : WorkspaceForm,
                 'error' : 'Please provide valid data'
             })
-            
+
+ 
+@login_required
+def boards(request, workspace_id):
+    workspace = get_object_or_404(Workspace, pk=workspace_id)
+    boards = Board.objects.filter(workspace=workspace)
+    return render(request, 'boards.html', {'boards' : boards})
+
+def create_board(request, workspace_id):
+
+    workspace = get_object_or_404(Workspace, pk=workspace_id)
+
+    if request.method == 'GET':
+        return render(request, 'create_board.html', {
+            'form' : BoardForm, 'workspace_id':workspace_id
+        })
+    else:
+        try:
+            form = BoardForm(request.POST)
+            new_board = form.save(commit=False)
+            new_board.workspace=workspace
+            new_board.save()
+            form.save_m2m()
+            print(new_board)
+            return redirect('boards', workspace_id=workspace.id)
+        except ValueError:
+            return render(request, 'create_board.html', {
+                'form' : BoardForm,
+                'error' : 'Please provide valid data'
+            })
+
+@login_required
+def create_task(request):
+    if request.method == 'GET':
+        return render(request, 'create_task.html', {
+            'form' : TaskForm
+        })
+    else:
+        try:
+            form = TaskForm(request.POST)
+            new_task = form.save(commit=False)
+            new_task.user = request.user
+            new_task.save()
+            print(new_task)
+            return redirect('tasks')
+        except ValueError:
+            return render(request, 'create_task.html', {
+                'form' : TaskForm,
+                'error' : 'Please provide valid data'
+            })
+ 

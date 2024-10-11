@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Create Board</h1>
+
+    {{error}}
+    <form action="{% url 'create_board' workspace_id %}" method="POST">
+        {% csrf_token %}
+
+        {{form}}
+        <button>
+            Save
+        </button>
+    </form>
+{% endblock %}

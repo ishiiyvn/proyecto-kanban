@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Task, Workspace
+from .models import Task, Workspace, Board
 
 
 
@@ -19,3 +19,9 @@ class WorkspaceForm(forms.ModelForm):
         
         model = Workspace
         fields = ['name', 'members']
+
+
+class BoardForm(forms.ModelForm):
+    class Meta: 
+        model = Board
+        fields = ['name']
