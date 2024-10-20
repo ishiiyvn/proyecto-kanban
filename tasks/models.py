@@ -33,7 +33,15 @@ class Board(models.Model):
 class CardList(models.Model):
     name = models.CharField(max_length=25)
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='card_lists')
-    
+    max_cards = models.PositiveIntegerField(default=5)  # User-defined limit
+    amount_cards = models.IntegerField(default=0)
+
+    def increse_amount(self):
+        self.amount_cards = self.amount_cards + 1
+
+    def decrease_amount(self):
+        self.amount_cards = self.amount_cards - 1
+
     def __str__(self):
         return self.name
     
@@ -45,6 +53,10 @@ class Card(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     card_list = models.ForeignKey(CardList, on_delete=models.CASCADE, related_name='cards')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cards')    
+
+
+    def get_card_list(self):
+        return self.card_list.pk
 
     def __str__(self):
         return self.name

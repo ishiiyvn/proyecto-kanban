@@ -23,6 +23,11 @@
                 <label for="list_name" class="form-label">List Name:</label>
                 <input type="text" name="name" class="form-control" id="list_name" required>
             </div>
+            <div class="mb-3">
+                <label for="max_cards" class="form-label">Max Cards:</label>  <!-- Updated label for clarity -->
+                <input type="number" name="max_cards" class="form-control" id="max_cards" value="5">  <!-- Updated name attribute -->
+                <small class="form-text text-muted">Please enter a non-negative integer.</small>
+            </div>
             <button type="submit" class="btn btn-primary btn-sm">Create List</button>
         </form>
     </div>
@@ -34,12 +39,17 @@
             {% for card_list in card_lists %}
                 <div class="col-md-2 mb-4">
                     <div class="card">
-                        <div class="card-body">    
+                        <div class="card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}">    
                             
                             <h2 class="card-title text-center">
                                 {{ card_list.name }}
                             </h2>
-            
+                            {% if card_list.amount_cards >= card_list.max_cards %}
+                            <p class="card-title text-center">
+                                Warning! Max amount of cards reached
+                            </p>
+                            {% endif %}
+                  
                             {% for card in card_list.cards.all %}
                                 <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
                                     <div class="mb-2 p-2 border rounded bg-light">

@@ -58,6 +58,6 @@ class ChecklistItemForm(forms.ModelForm):
 class CardlistForm(forms.ModelForm):
     class Meta:
         model = CardList
-        fields = ['name']  # Include any other fields as necessary
+        fields = ['name', 'max_cards']  # Include any other fields as necessary
 
 

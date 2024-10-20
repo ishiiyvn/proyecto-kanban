@@ -236,6 +236,9 @@ def view_board(request, owner_id, workspace_id, board_id):
             new_card.due_date = form.cleaned_data.get('due_date')  # Assign the due date
             new_card.assigned_to = form.cleaned_data.get('assigned_to')  # Assign the user based on form data
             new_card.save()
+            card_list = get_object_or_404(CardList, pk=new_card.get_card_list())
+            card_list.increse_amount()
+            card_list.save()
             new_checklist_item_description = request.POST.get('new_checklist_item')
             if new_checklist_item_description:
                 ChecklistItem.objects.create(card=new_card, description=new_checklist_item_description)
@@ -329,6 +332,7 @@ def create_cardlist(request, owner_id, workspace_id, board_id):
 
     if request.method == 'POST':
         form = CardlistForm(request.POST)
+        print(form)
         if form.is_valid():
             card_list = form.save(commit=False)
             card_list.board = board  # Set the board for the new card list
@@ -383,9 +387,11 @@ def update_card(request, owner_id, workspace_id, board_id, card_id):
 @login_required
 def delete_card(request, owner_id, workspace_id, board_id, card_id):
     card = get_object_or_404(Card, pk=card_id)
-
     if request.method == 'POST':
-        card.delete()  # Delete the card
+        card_list = get_object_or_404(CardList, pk=card.get_card_list())
+        card.delete()
+        card_list.decrease_amount()
+        card_list.save()
         return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
 
     return render(request, 'delete_card.html', {

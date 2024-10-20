@@ -43,8 +43,8 @@
         <button type="button" class="btn btn-secondary" onclick="addChecklistItem()">Add Checklist Item</button>
         
         <button type="submit" class="btn btn-primary">Update Card</button>
-    </form>
-    <a href="{% url 'delete_card' owner_id=owner_id workspace_id=workspace_id board_id=board_id card_id=card.id %}" class="mt-2">
+    </form> <!-- card_list_id=card_list.id  http://127.0.0.1:8000/workspaces/16/12/boards/17/cards/37/update/ -->
+    <a href="{% url 'delete_card' owner_id=owner_id workspace_id=workspace_id board_id=board_id card_id=card.id%}" class="mt-2">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Delete Card</button>
     </a>
