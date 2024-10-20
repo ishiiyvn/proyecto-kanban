@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Task, Workspace, Board
+from .models import ChecklistItem, Task, Workspace, Board, Card, CardList
 
 
 
@@ -25,3 +25,39 @@ class BoardForm(forms.ModelForm):
     class Meta: 
         model = Board
         fields = ['name']
+        
+        
+
+class CardForm(forms.ModelForm):
+    checklist = forms.CharField(widget=forms.Textarea, required=False)
+
+    class Meta:
+        model = Card
+        fields = ['name', 'description', 'due_date', 'checklist', 'assigned_to']
+        widgets = {
+            'due_date': forms.DateTimeInput(attrs={
+                'type': 'datetime-local',
+                'class': 'form-control'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        workspace = kwargs.pop('workspace', None)
+        super(CardForm, self).__init__(*args, **kwargs)
+        if workspace:
+            # Filter the queryset for the assigned_to field
+            self.fields['assigned_to'].queryset = workspace.members.all()
+    
+
+class ChecklistItemForm(forms.ModelForm):
+    class Meta:
+        model = ChecklistItem
+        fields = ['description', 'is_completed']
+        
+
+class CardlistForm(forms.ModelForm):
+    class Meta:
+        model = CardList
+        fields = ['name']  # Include any other fields as necessary
+
+

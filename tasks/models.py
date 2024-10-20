@@ -29,4 +29,33 @@ class Board(models.Model):
     def __str__(self):
         return self.name
 
+    
+class CardList(models.Model):
+    name = models.CharField(max_length=25)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='card_lists')
+    
+    def __str__(self):
+        return self.name
+    
+
+class Card(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    due_date = models.DateTimeField(blank=True, null=True)  # New field for due date
+    created = models.DateTimeField(auto_now_add=True)
+    card_list = models.ForeignKey(CardList, on_delete=models.CASCADE, related_name='cards')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cards')    
+
+    def __str__(self):
+        return self.name
+    
+
+class ChecklistItem(models.Model):
+    card = models.ForeignKey(Card, related_name='checklist_items', on_delete=models.CASCADE)
+    description = models.CharField(max_length=255)
+    is_completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.description
+
 

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<main class="container py-5">
+    <section class="card card-body">
+        <h1 class="text-center">Delete Board</h1>
+        <p>Are you sure you want to delete the board "{{ board.name }}"?</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Yes, delete</button>
+            <a href="{% url 'boards' owner_id=board.workspace.owner.id workspace_id=board.workspace.id %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </section>
+</main>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h2>Update Board</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save changes</button>
+        <a href="{% url 'boards' owner_id=owner_id workspace_id=workspace_id %}">Cancel</a>
+    </form>
+
+{% endblock %}

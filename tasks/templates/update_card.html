@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load widget_tweaks %}
+
+{% block content %}
+    <h1>Update Card: {{ card.name }}</h1>
+    
+    <form method="POST" action="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board_id card_id=card.id %}">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="name" class="form-label">Name:</label>
+            {{ form.name|add_class:"form-control" }}
+        </div>
+        
+        <div class="mb-3">
+            <label for="description" class="form-label">Description:</label>
+            {{ form.description|add_class:"form-control" }}
+        </div>
+        
+        <div class="mb-3">
+            <label for="due_date" class="form-label">Due Date:</label>
+            {{ form.due_date|add_class:"form-control" }}
+        </div>
+        
+        <div class="mb-3">
+            <label for="assigned_to" class="form-label">Assigned to:</label>
+            {{ form.assigned_to|add_class:"form-control" }}
+        </div>
+
+        <h4>Checklist Items</h4>
+        <div id="checklist-container">
+            {% for item in card.checklist_items.all %}
+                <div class="checklist-item mb-2">
+                    <input type="text" name="checklist_item_{{ item.id }}" value="{{ item.description }}" class="form-control d-inline" style="width: 70%;" />
+                    <input type="checkbox" name="checklist_item_ids" value="{{ item.id }}" {% if item.is_completed %}checked{% endif %} />
+                    <label>Completed</label>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">Remove</button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" class="btn btn-secondary" onclick="addChecklistItem()">Add Checklist Item</button>
+        
+        <button type="submit" class="btn btn-primary">Update Card</button>
+    </form>
+    <a href="{% url 'delete_card' owner_id=owner_id workspace_id=workspace_id board_id=board_id card_id=card.id %}" class="mt-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete Card</button>
+    </a>
+
+    <script>
+        function removeItem(button) {
+            const itemDiv = button.parentElement;  // Get the parent div of the button
+            itemDiv.remove();  // Remove the item from the DOM
+        }
+
+        function addChecklistItem() {
+            const container = document.getElementById('checklist-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'checklist-item mb-2';
+            newItem.innerHTML = `
+                <input type="text" name="checklist_item_new" class="form-control d-inline" style="width: 70%;" />
+                <input type="checkbox" name="checklist_item_new_ids" value="1" /> 
+                <label>Completed</label>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">Remove</button>
+            `;
+            container.appendChild(newItem);
+        }
+    </script>
+{% endblock %}
+

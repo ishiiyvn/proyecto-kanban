@@ -5,7 +5,7 @@
 <ul>
     {% for workspace in workspaces %}
     <li>
-        <a href="{% url 'workspaces'%}">
+        <a href="{% url 'boards' owner_id=workspace.owner.id workspace_id=workspace.id%}">
             <strong>{{ workspace.name }}</strong>
             <p>Owner: {{ workspace.owner.username }}</p>
             <p>Members:

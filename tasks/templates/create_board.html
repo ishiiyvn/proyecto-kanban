@@ -4,7 +4,7 @@
     <h1>Create Board</h1>
 
     {{error}}
-    <form action="{% url 'create_board' workspace_id %}" method="POST">
+    <form action="{% url 'create_board' owner_id workspace_id %}" method="POST">
         {% csrf_token %}
 
         {{form}}
