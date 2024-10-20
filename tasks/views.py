@@ -224,6 +224,7 @@ def view_board(request, owner_id, workspace_id, board_id):
 
     card_lists = board.card_lists.all()
     workspace = board.workspace
+    get_time=timezone.now()
 
     if request.method == 'POST':
         form = CardForm(request.POST)
@@ -252,7 +253,8 @@ def view_board(request, owner_id, workspace_id, board_id):
         'card_lists': card_lists,
         'form': form,
         'owner_id': owner_id,
-        'workspace_id': workspace_id
+        'workspace_id': workspace_id,
+        'get_time':get_time
     })
 
 

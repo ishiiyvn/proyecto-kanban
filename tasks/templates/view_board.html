@@ -53,29 +53,38 @@
                             {% for card in card_list.cards.all %}
                                 <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
                                     <div class="mb-2 p-2 border rounded bg-light">
-                                        
-                                        <strong>{{ card.name }}</strong>
-                                        <p>{{ card.description }}</p>
-                                        <p>
-                                            {% if card.assigned_to %}
-                                                Assigned to: {{ card.assigned_to.username }}
-                                            {% else %}
-                                                Assigned to: None
-                                            {% endif %}
-                                        </p>
-                                        {% for item in card.checklist_items.all %}
+                                        {% if card.due_date > get_time %}
                                             <div>
-                                                <input type="checkbox" {% if item.is_completed %}checked{% endif %}>
-                                                {{ item.description }}
+                                        {% else %}
+                                            <div style="color: red;">
+                                                <strong>¡¡¡Tarea atrasada!!!</strong>
+                                                <br>
+                                                <br>
+                                        {% endif %}
+                                            
+                                                <strong>{{ card.name }}</strong>
+                                                <p>{{ card.description }}</p>
+                                                <p>
+                                                    {% if card.assigned_to %}
+                                                        Assigned to: {{ card.assigned_to.username }}
+                                                    {% else %}
+                                                        Assigned to: None
+                                                    {% endif %}
+                                                </p>
+                                                {% for item in card.checklist_items.all %}
+                                                    <div>
+                                                        <input type="checkbox" {% if item.is_completed %}checked{% endif %}>
+                                                        {{ item.description }}
+                                                    </div>
+                                                {% endfor %}
+                                                <p>
+                                                    {% if card.due_date %}
+                                                        Due date: {{ card.due_date }}
+                                                    {% else %}
+                                                        Due date: Unassigned
+                                                    {% endif %}
+                                                </p>
                                             </div>
-                                        {% endfor %}
-                                        <p>
-                                            {% if card.due_date %}
-                                                Due date: {{ card.due_date }}
-                                            {% else %}
-                                                Due date: Unassigned
-                                            {% endif %}
-                                        </p>
                                     </div>
                                 </a>
                             {% empty %}
