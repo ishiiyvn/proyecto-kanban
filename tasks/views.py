@@ -428,3 +428,116 @@ def create_task(request):
                 'error' : 'Please provide valid data'
             })
  
+
+@login_required
+def update_board(request, owner_id, workspace_id, board_id):
+    workspace = get_object_or_404(Workspace, pk=workspace_id, owner_id=owner_id)
+    board = get_object_or_404(Board, pk=board_id, workspace=workspace)
+
+    if request.method == 'GET':
+        form = BoardForm(instance=board)
+        return render(request, 'update_board.html', {
+            'form': form,
+            'owner_id': owner_id,
+            'workspace_id': workspace_id,
+            'board_id': board_id
+        })
+    else:
+        try:
+            form = BoardForm(request.POST, instance=board)
+            form.save()
+            return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+        except ValueError:
+            return render(request, 'update_board.html', {
+                'form': form,
+                'error': 'Please provide valid data',
+                'owner_id': owner_id,
+                'workspace_id': workspace_id,
+                'board_id': board_id
+            })
+
+
+@login_required
+def delete_board(request, owner_id, workspace_id, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+
+    if request.method == 'POST':
+        board.delete()
+        return redirect('boards', owner_id=owner_id, workspace_id=workspace_id)
+
+    return render(request, 'delete_board.html', {'board': board})
+
+
+@login_required
+def create_cardlist(request, owner_id, workspace_id, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+
+    if request.method == 'POST':
+        form = CardlistForm(request.POST)
+        print(form)
+        if form.is_valid():
+            card_list = form.save(commit=False)
+            card_list.board = board  # Set the board for the new card list
+            card_list.save()
+            return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+
+    # Handle the case where the form is not valid, you can add error messages as needed
+    return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+
+
+@login_required
+def update_card(request, owner_id, workspace_id, board_id, card_id):
+    card = get_object_or_404(Card, pk=card_id)
+    workspace = card.card_list.board.workspace  # Get the workspace associated with the board
+    if request.method == 'POST':
+        form = CardForm(request.POST, instance=card)
+        if form.is_valid():
+            updated_card = form.save()
+
+            # Handle checklist items
+            checklist_item_ids = request.POST.getlist('checklist_item_ids')  # IDs of the items being updated
+            for item_id in card.checklist_items.values_list('id', flat=True):
+                # Get the new description from the form
+                new_description = request.POST.get(f'checklist_item_{item_id}')
+                checklist_item = ChecklistItem.objects.get(id=item_id)
+                checklist_item.is_completed = str(item_id) in checklist_item_ids
+                checklist_item.description = new_description  # Update the description
+                checklist_item.save()
+
+            # Handle new checklist item addition
+            new_checklist_item_descriptions = request.POST.getlist('checklist_item_new')  # Get new checklist items
+            for new_description in new_checklist_item_descriptions:
+                if new_description:  # Only create if the description is not empty
+                    ChecklistItem.objects.create(card=updated_card, description=new_description)
+
+            return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+
+    else:
+        form = CardForm(instance=card, workspace=workspace)
+
+    return render(request, 'update_card.html', {
+        'form': form,
+        'card': card,
+        'checklist_items': card.checklist_items.all(),  # Pass existing checklist items to the template
+        'owner_id': owner_id,
+        'workspace_id': workspace_id,
+        'board_id': board_id
+    })
+
+
+@login_required
+def delete_card(request, owner_id, workspace_id, board_id, card_id):
+    card = get_object_or_404(Card, pk=card_id)
+    if request.method == 'POST':
+        card_list = get_object_or_404(CardList, pk=card.get_card_list())
+        card.delete()
+        card_list.decrease_amount()
+        card_list.save()
+        return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+
+    return render(request, 'delete_card.html', {
+        'card': card,
+        'owner_id': owner_id,
+        'workspace_id': workspace_id,
+        'board_id': board_id
+    })
