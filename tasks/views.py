@@ -541,3 +541,24 @@ def delete_card(request, owner_id, workspace_id, board_id, card_id):
         'workspace_id': workspace_id,
         'board_id': board_id
     })
+
+@login_required
+def stats(request,owner_id,workspace_id, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+
+    card_lists= board.card_lists.all()
+    card_lists_amounts=[]
+    card_lists_names=[]
+    get_time=timezone.now()
+    overdue_cards_amount=[]
+
+    for card_list in card_lists:
+        card_lists_names.append(card_list.name)
+        card_lists_amounts.append(card_list.amount_cards)
+        aux=0
+        for card in card_list.cards.all():
+            if card.due_date<get_time:
+                aux+=1
+        overdue_cards_amount.append(aux)
+    
+    return render(request,'stats.html',{'card_list_names':card_lists_names,'card_list_amounts':card_lists_amounts,'overdue_cards_amount':overdue_cards_amount})

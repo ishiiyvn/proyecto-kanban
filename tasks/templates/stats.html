@@ -1,0 +1,73 @@
+{% extends 'base.html' %} {% block content %}
+<h1>Stats</h1>
+<h2 class="card-title">Distribución de tareas por estado</h2>
+<div>
+  <canvas id="chart1"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+      const chart1 = document.getElementById("chart1");
+
+      new Chart(chart1, {
+          type: "pie",
+          data: {
+              labels: {{ card_list_names| safe}},
+          datasets: [
+          {
+              label: "# of Cards",
+              data: {{ card_list_amounts| safe}},
+          borderWidth: 1,
+          },
+      ],
+      },
+      options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+          yAxes: [{
+              ticks: {
+                  beginAtZero:true
+              }
+          }]
+      }
+  }
+    });
+</script>
+
+<h2 class="card-title">Distribución de tareas por estado</h2>
+<div>
+  <canvas id="chart2"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+      const chart2 = document.getElementById("chart2");
+
+      new Chart(chart2, {
+          type: "bar",
+          data: {
+              labels: {{ card_list_names| safe}},
+          datasets: [
+          {
+              label: "# of Cards",
+              data: {{ overdue_cards_amount| safe}},
+          borderWidth: 1,
+          },
+      ],
+      },
+      options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+          yAxes: [{
+              ticks: {
+                  beginAtZero:true
+              }
+          }]
+      }
+  }
+    });
+</script>
+{% endblock %}

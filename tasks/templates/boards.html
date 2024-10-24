@@ -18,6 +18,9 @@
     <a href="{% url 'view_board' owner_id=workspace.owner.id workspace_id=workspace.id board_id=board.id %}">
         <li>
             <p>{{board.name}}</p> 
+            <a href="{% url 'stats' owner_id=workspace.owner.id workspace_id=workspace.id board_id=board.id %}" class="btn btn-secondary">
+                View stats
+            </a>
         </li>
     </a>
     {% endfor %}
