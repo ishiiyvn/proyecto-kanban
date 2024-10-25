@@ -30,7 +30,9 @@
     <a href="{% url 'create_cardlist' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" class="btn btn-success" onclick="toggleAddListForm(event)">
         Add List
     </a>
-
+    <a href="{% url 'stats' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" class="btn btn-secondary">
+        View stats
+    </a>
     <div id="add-list-form-container" style="display:none;">                                
         <form action="{% url 'create_cardlist' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" method="POST" class="mt-2">
             {% csrf_token %}
