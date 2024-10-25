@@ -1,7 +1,14 @@
 {% extends 'base.html' %} {% block content %}
 <h1>Stats</h1>
 <h2 class="card-title">Distribución de tareas por estado</h2>
-<div>
+
+<style>
+    .charts{
+        height: 400px;
+    }
+</style>
+
+<div class="charts">
   <canvas id="chart1"></canvas>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,21 +29,17 @@
       ],
       },
       options: {
-      responsive: true,
-      maintainAspectRatio: false,
       scales: {
-          yAxes: [{
-              ticks: {
-                  beginAtZero:true
-              }
-          }]
+        y: {
+          beginAtZero: true
+        }
       }
-  }
+    }
     });
 </script>
 
 <h2 class="card-title">Cantidad de tareas atrasadas por estado</h2>
-<div>
+<div class="charts">
   <canvas id="chart2"></canvas>
 </div>
 
@@ -53,21 +56,49 @@
           {
               label: "# of Cards",
               data: {{ overdue_cards_amount| safe}},
+          borderWidth: 3,
+          },
+      ],
+      },
+      options: {
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+    });
+</script>
+
+<h2 class="card-title">Tareas asignadas por usuario</h2>
+<div class="charts">
+  <canvas id="chart3"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+      const chart3 = document.getElementById("chart3");
+
+      new Chart(chart3, {
+          type: "pie",
+          data: {
+              labels: {{ members | safe}},
+          datasets: [
+          {
+              label: "# of Cards",
+              data: {{ member_amounts | safe}},
           borderWidth: 1,
           },
       ],
       },
       options: {
-      responsive: true,
-      maintainAspectRatio: false,
       scales: {
-          yAxes: [{
-              ticks: {
-                  beginAtZero:true
-              }
-          }]
+        y: {
+          beginAtZero: true
+        }
       }
-  }
+    }
     });
 </script>
 {% endblock %}

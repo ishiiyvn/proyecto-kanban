@@ -551,6 +551,11 @@ def stats(request,owner_id,workspace_id, board_id):
     card_lists_names=[]
     get_time=timezone.now()
     overdue_cards_amount=[]
+    members=get_object_or_404(Workspace,pk=workspace_id).members.all()
+    member_amounts={"Any":0}
+
+    for member in members:
+        member_amounts[str(member)]=0
 
     for card_list in card_lists:
         card_lists_names.append(card_list.name)
@@ -559,6 +564,17 @@ def stats(request,owner_id,workspace_id, board_id):
         for card in card_list.cards.all():
             if card.due_date<get_time:
                 aux+=1
+            if card.assigned_to:
+                member_amounts[str(card.assigned_to)]+=1
+            else:
+                member_amounts['Any']+=1
+            
         overdue_cards_amount.append(aux)
-    
-    return render(request,'stats.html',{'card_list_names':card_lists_names,'card_list_amounts':card_lists_amounts,'overdue_cards_amount':overdue_cards_amount})
+
+    return render(request,'stats.html',{
+        'card_list_names':card_lists_names,
+        'card_list_amounts':card_lists_amounts,
+        'overdue_cards_amount':overdue_cards_amount,
+        'members':list(member_amounts.keys()),
+        'member_amounts':list(member_amounts.values())
+    })
