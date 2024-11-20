@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+_nyt*dx@&b46v3lmg)64bl9k%581o482hn75&mt*1!8pe3jxb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tasks',
     'widget_tweaks',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google'
 ]
 
 MIDDLEWARE = [
@@ -49,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'grupo1.urls'
@@ -64,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
             ],
         },
     },
@@ -129,3 +136,39 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+SITE_ID=1
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        # For each OAuth based provider, either add a ``SocialApp``
+        # (``socialaccount`` app) containing the required client
+        # credentials, or list them here:
+        "APPS": [
+            {
+                "client_id": "917688254610-g1gi24e9tqpvhgim84gicr34dn7ei1g5.apps.googleusercontent.com",
+                "secret": "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",
+                "key": ""
+            },
+        ],
+        # These are provider-specific settings that can only be
+        # listed here:
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    }
+}
+SOCIALACCOUNT_LOGIN_ON_GET = True
+LOGIN_REDIRECT_URL = '/workspaces/' 
