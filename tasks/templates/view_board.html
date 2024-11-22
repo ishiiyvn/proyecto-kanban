@@ -54,10 +54,9 @@
     <div class="row">
         <div class="row">
             {% for card_list in card_lists %}
-                <div class="col-md-2 mb-4">
+                <div class="col-md-2 mb-4" >
                     <div class="card">
-                        <div class="card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}">    
-                            
+                        <div id="{{card_list.id}}"class="container card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}">    
                             <h2 class="card-title text-center">
                                 {{ card_list.name }}
                             </h2>
@@ -68,10 +67,51 @@
                             {% endif %}
                   
                             {% for card in card_list.cards.all %}
-                                {% if request.GET.assigned_user %}
-                                    {% if card.assigned_to.id|stringformat:"s" == request.GET.assigned_user %}
+                                
+                                    {% if request.GET.assigned_user %}
+                                        {% if card.assigned_to.id|stringformat:"s" == request.GET.assigned_user %}
+                                                <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
+                                                    <!--  <div class="draggable mb-2 p-2 border rounded bg-light" draggable="true"> -->
+                                                    <div id="{{card.id }}" class="draggable mb-2 p-2 border rounded bg-light" draggable="true">
+                                                        {% if card.due_date > get_time %}
+                                                            <div>
+                                                        {% else %}
+                                                            <div style="color: red;">
+                                                                <strong>¡¡¡Tarea atrasada!!!</strong>
+                                                                <br>
+                                                                <br>
+                                                        {% endif %}
+                                                            
+                                                                <strong>{{ card.name }}</strong>
+                                                                <p>{{ card.description }}</p>
+                                                                <p>
+                                                                    {% if card.assigned_to %}
+                                                                        Assigned to: {{ card.assigned_to.username }}
+                                                                    {% else %}
+                                                                        Assigned to: None
+                                                                    {% endif %}
+                                                                </p>
+                                                                {% for item in card.checklist_items.all %}
+                                                                    <div>
+                                                                        <input type="checkbox" {% if item.is_completed %}checked{% endif %}>
+                                                                        {{ item.description }}
+                                                                    </div>
+                                                                {% endfor %}
+                                                                <p>
+                                                                    {% if card.due_date %}
+                                                                        Due date: {{ card.due_date }}
+                                                                    {% else %}
+                                                                        Due date: Unassigned
+                                                                    {% endif %}
+                                                                </p>
+                                                            </div>
+                                                    </div>
+                                                </a>
+                                        {% endif %}
+                                    {% else %}
                                         <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
-                                            <div class="mb-2 p-2 border rounded bg-light">
+                                            <!--  <div class="mb-2 p-2 border rounded bg-light ">-->
+                                            <div id="{{card.id}}" class="draggable mb-2 p-2 border rounded bg-light" draggable="true" data-url="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}">
                                                 {% if card.due_date > get_time %}
                                                     <div>
                                                 {% else %}
@@ -107,48 +147,11 @@
                                             </div>
                                         </a>
                                     {% endif %}
-                                {% else %}
-                                    <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
-                                        <div class="mb-2 p-2 border rounded bg-light">
-                                            {% if card.due_date > get_time %}
-                                                <div>
-                                            {% else %}
-                                                <div style="color: red;">
-                                                    <strong>¡¡¡Tarea atrasada!!!</strong>
-                                                    <br>
-                                                    <br>
-                                            {% endif %}
-                                                
-                                                    <strong>{{ card.name }}</strong>
-                                                    <p>{{ card.description }}</p>
-                                                    <p>
-                                                        {% if card.assigned_to %}
-                                                            Assigned to: {{ card.assigned_to.username }}
-                                                        {% else %}
-                                                            Assigned to: None
-                                                        {% endif %}
-                                                    </p>
-                                                    {% for item in card.checklist_items.all %}
-                                                        <div>
-                                                            <input type="checkbox" {% if item.is_completed %}checked{% endif %}>
-                                                            {{ item.description }}
-                                                        </div>
-                                                    {% endfor %}
-                                                    <p>
-                                                        {% if card.due_date %}
-                                                            Due date: {{ card.due_date }}
-                                                        {% else %}
-                                                            Due date: Unassigned
-                                                        {% endif %}
-                                                    </p>
-                                                </div>
-                                        </div>
-                                    </a>
-                                {% endif %}
+                                
                             {% empty %}
                                 <p class="text-muted">No cards in this list.</p>
                             {% endfor %}
-
+                            
                             <button type="button" id="toggle-button-{{ card_list.id }}" class="btn btn-secondary btn-sm" onclick="toggleForm('{{ card_list.id }}')">
                                 Add Card
                             </button>

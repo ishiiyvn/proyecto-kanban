@@ -25,7 +25,7 @@ def signup(request):
             try:
                 user = User.objects.create_user(username=request.POST['username'], password=request.POST['password1'])
                 user.save()
-                login(request, user)
+                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
                 return redirect('tasks')
             except IntegrityError:
                 return render(request, 'signup.html',{
@@ -53,7 +53,7 @@ def signin(request):
                 'error': 'Username or password is incorrect'
             })
         else:
-            login(request, user)
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return redirect('workspaces')
 
 
@@ -524,6 +524,13 @@ def update_card(request, owner_id, workspace_id, board_id, card_id):
         'board_id': board_id
     })
 
+def update_cardlist(request, owner_id, workspace_id, board_id, card_id, cardlist_id):
+    card = get_object_or_404(Card, pk=card_id)
+    cardlist = get_object_or_404(CardList, pk=cardlist_id)
+    if request.method == 'POST':
+        card.card_list = cardlist
+        card.save()
+        return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
 
 @login_required
 def delete_card(request, owner_id, workspace_id, board_id, card_id):

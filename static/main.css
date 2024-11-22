@@ -1,0 +1,16 @@
+/*body {
+    background-color: lightblue;
+    font-family: verdana;
+}
+
+.container{
+    background-color: black;
+}
+*/
+.draggable{
+    cursor:move;
+}
+
+.draggable.dragging{
+    opacity: .5;
+}
