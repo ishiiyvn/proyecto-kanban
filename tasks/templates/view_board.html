@@ -75,7 +75,7 @@
                 <div id="list-{{ card_list.id }}" class="container card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}" ondrop="handleDrop(event, {{ card_list.id }})" ondragover="allowDrop(event)">
                     <h2 class="card-title text-center">{{ card_list.name }}</h2>
                     {% if card_list.amount_cards >= card_list.max_cards %}
-                        <p class="text-center text-warning">Warning! Max amount of cards reached</p>
+                        <p class="text-center text-dark fw-bold"">Warning! Max amount of cards reached</p>
                     {% endif %}
 
                     <!-- Cards -->
