@@ -2,20 +2,54 @@
 
 {% block content %}
 <h1>Pending Tasks</h1>
+
+<!-- Filter by Tags -->
+<form method="GET" id="filter-form">
+    <label for="tag">Filter by Tag:</label>
+    <select name="tag" id="tag" class="form-control" onchange="updateFilter()">
+        <option value="">-- Select a tag --</option>
+        {% for tag in tags %}
+        <option value="{{ tag.id }}">{{ tag.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+
 <ul>
     {% for task in tasks %}
     <li>
         <a href="{% url 'task_detail' task.id %}">
             {% if task.important %}
-            <strong>{{task.title}}</strong>
+            <strong>{{ task.title }}</strong>
             {% else %}
-                {{task.title}}
+            {{ task.title }}
             {% endif %}
-            <p>{{task.description}}</p>
-            <p>{{task.user.username}}</p>
-            <p>{{task.datecompleted|date:'M j H:i'}}</p>
         </a>
+        <p>{{ task.description }}</p>
+        <p>{{ task.user.username }}</p>
+        <p>{{ task.datecompleted|date:'M j H:i' }}</p>
+        <!-- Display associated tags -->
+        <ul>
+            {% for tag in task.tags.all %}
+            <li>{{ tag.name }}</li>
+            {% endfor %}
+        </ul>
     </li>
     {% endfor %}
 </ul>
+
+<script>
+    function updateFilter() {
+        const selectElement = document.getElementById('tag');
+        const selectedTagId = selectElement.value;
+        const form = document.getElementById('filter-form');
+
+        if (selectedTagId) {
+            form.action = `/tags/${selectedTagId}/`;
+            form.method = "GET";
+            form.submit();
+        } else {
+            window.location.href = "/tasks/"; // Redirige a la lista de tareas si no se selecciona ninguna etiqueta
+        }
+    }
+</script>
 {% endblock %}

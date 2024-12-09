@@ -30,74 +30,69 @@ function mouseUp(e){
     document.removeEventListener('mousemove', mouseMove)
 }*/
 
-const draggables = document.querySelectorAll('.draggable')
-const containers = document.querySelectorAll('.container')
+// Seleccionar los elementos arrastrables y los contenedores
 
-let first_card
-let first_container
-let flag = false
+document.addEventListener("DOMContentLoaded", () => {
+    const draggables = document.querySelectorAll('.draggable');
+    const containers = document.querySelectorAll('.container');
 
-draggables.forEach(draggable => {
-    draggable.addEventListener('dragstart', () => {
-        draggable.classList.add('dragging')
-    }) 
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            draggable.classList.add('dragging');
+        });
 
-    draggable.addEventListener('dragend', () => {
-        draggable.classList.remove('dragging')
-    })
-})
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('dragging');
+        });
+    });
 
-containers.forEach(container => {
-    container.addEventListener('dragover', e => {
-        e.preventDefault()
-        const draggable = document.querySelector('.dragging')
-        if (draggable && draggable instanceof Node) {
-            container.appendChild(draggable)
-        if (first_card ===undefined){
-            first_card = draggable.id
-            first_container = container.id
-            console.log("Primera vez")
-        }
-        
-        if (first_card != draggable.id) {
-            first_card = draggable.id
-            flag = false
-        } else {
-            if (first_container != container.id && flag == false){
-                //console.log(draggable.getAttribute('data-url') + 'cardlist/' + container.id + "/")
-                fetchCard(draggable.getAttribute('data-url') + 'cardlist/' + container.id + "/")
-                console.log("Cambió de contenedor")
-                first_container = container.id
-                flag = true
+    containers.forEach(container => {
+        container.addEventListener('dragover', e => {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            if (draggable) {
+                container.appendChild(draggable);
+
+                const cardId = draggable.id;
+                const cardlistId = container.id;
+
+                const url = `/update_card_position/${cardId}/cardlist/${cardlistId}/`;
+
+                // Enviar la solicitud al servidor
+                fetch(`/update_card_position/${cardId}/cardlist/${containerId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update card position');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Card position updated successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error updating card position:', error);
+                });
+            }
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
-        flag = false
-        console.log("Card ID", draggable.id)
-        console.log("Card list ID", container.id)
-    }})
-})
-
-function fetchCard(url){
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    location.reload();
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+        return cookieValue;
     }
-    return cookieValue;
-}
+});

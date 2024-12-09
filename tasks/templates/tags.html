@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>All Tags</h1>
+<ul>
+    {% for tag in tags %}
+    <li>
+        <a href="{% url 'filter_by_tag' tag.id %}">{{ tag.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'create_tag' %}">Create New Tag</a>
+{% endblock %}

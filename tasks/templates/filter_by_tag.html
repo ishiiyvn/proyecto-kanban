@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Cards with tag: {{ tag.name }}</h1>
+<ul>
+    {% for card in cards %}
+    <li>
+        <strong>{{ card.name }}</strong> - {{ card.description }}
+        <p>Assigned to: {{ card.assigned_to.username }}</p>
+    </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'tags' %}">Back to Tags</a>
+{% endblock %}

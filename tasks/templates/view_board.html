@@ -4,10 +4,11 @@
 {% block content %}
     <h1>{{ board.name }}</h1>
 
+    <!-- Filter by Assigned User -->
     <form action="" method="GET" class="mb-4">
         <div class="form-group">
             <label for="assigned_user">Filter by Assigned User:</label>
-            <select name="assigned_user" id="assigned_user" class="form-control">
+            <select name="assigned_user" id="assigned_user" class="form-control" onchange="this.form.submit()">
                 <option value="">All Users</option>
                 {% for member in board.workspace.members.all %}
                     <option value="{{ member.id }}" {% if request.GET.assigned_user == member.id|stringformat:"s" %}selected{% endif %}>
@@ -16,9 +17,24 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="btn btn-primary">Apply Filter</button>
     </form>
 
+    <!-- Filter by Tag -->
+    <form action="" method="GET" class="mb-4">
+        <div class="form-group">
+            <label for="filter_tag">Filter by Tag:</label>
+            <select name="filter_tag" id="filter_tag" class="form-control" onchange="this.form.submit()">
+                <option value="">All Tags</option>
+                {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if request.GET.filter_tag == tag.id|stringformat:"s" %}selected{% endif %}>
+                        {{ tag.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+
+    <!-- Board Actions -->
     <form action="{% url 'update_board' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" method="GET" style="display:inline;">
         <button type="submit" class="btn btn-primary">Update board</button>
     </form>
@@ -26,14 +42,16 @@
     <a href="{% url 'delete_board' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" class="btn btn-danger">
         Delete board
     </a>
-    
+
     <a href="{% url 'create_cardlist' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" class="btn btn-success" onclick="toggleAddListForm(event)">
         Add List
     </a>
+
     <a href="{% url 'stats' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" class="btn btn-secondary">
-        View stats
+        View Stats
     </a>
-    <div id="add-list-form-container" style="display:none;">                                
+
+    <div id="add-list-form-container" style="display:none;">
         <form action="{% url 'create_cardlist' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id %}" method="POST" class="mt-2">
             {% csrf_token %}
             <div class="mb-3">
@@ -49,167 +67,133 @@
         </form>
     </div>
 
-    {{error}}
-
+    <!-- Card Lists -->
     <div class="row">
-        <div class="row">
-            {% for card_list in card_lists %}
-                <div class="col-md-2 mb-4" >
-                    <div class="card">
-                        <div id="{{card_list.id}}"class="container card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}">    
-                            <h2 class="card-title text-center">
-                                {{ card_list.name }}
-                            </h2>
-                            {% if card_list.amount_cards >= card_list.max_cards %}
-                            <p class="card-title text-center">
-                                Warning! Max amount of cards reached
-                            </p>
-                            {% endif %}
-                  
-                            {% for card in card_list.cards.all %}
-                                
-                                    {% if request.GET.assigned_user %}
-                                        {% if card.assigned_to.id|stringformat:"s" == request.GET.assigned_user %}
-                                                <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
-                                                    <!--  <div class="draggable mb-2 p-2 border rounded bg-light" draggable="true"> -->
-                                                    <div id="{{card.id }}" class="draggable mb-2 p-2 border rounded bg-light" draggable="true">
-                                                        {% if card.due_date > get_time %}
-                                                            <div>
-                                                        {% else %}
-                                                            <div style="color: red;">
-                                                                <strong>¡¡¡Tarea atrasada!!!</strong>
-                                                                <br>
-                                                                <br>
-                                                        {% endif %}
-                                                            
-                                                                <strong>{{ card.name }}</strong>
-                                                                <p>{{ card.description }}</p>
-                                                                <p>
-                                                                    {% if card.assigned_to %}
-                                                                        Assigned to: {{ card.assigned_to.username }}
-                                                                    {% else %}
-                                                                        Assigned to: None
-                                                                    {% endif %}
-                                                                </p>
-                                                                {% for item in card.checklist_items.all %}
-                                                                    <div>
-                                                                        <input type="checkbox" {% if item.is_completed %}checked{% endif %}>
-                                                                        {{ item.description }}
-                                                                    </div>
-                                                                {% endfor %}
-                                                                <p>
-                                                                    {% if card.due_date %}
-                                                                        Due date: {{ card.due_date }}
-                                                                    {% else %}
-                                                                        Due date: Unassigned
-                                                                    {% endif %}
-                                                                </p>
-                                                            </div>
-                                                    </div>
-                                                </a>
-                                        {% endif %}
-                                    {% else %}
-                                        <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}" class="text-decoration-none" style="color: inherit;">
-                                            <!--  <div class="mb-2 p-2 border rounded bg-light ">-->
-                                            <div id="{{card.id}}" class="draggable mb-2 p-2 border rounded bg-light" draggable="true" data-url="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}">
-                                                {% if card.due_date > get_time %}
-                                                    <div>
-                                                {% else %}
-                                                    <div style="color: red;">
-                                                        <strong>¡¡¡Tarea atrasada!!!</strong>
-                                                        <br>
-                                                        <br>
-                                                {% endif %}
-                                                    
-                                                        <strong>{{ card.name }}</strong>
-                                                        <p>{{ card.description }}</p>
-                                                        <p>
-                                                            {% if card.assigned_to %}
-                                                                Assigned to: {{ card.assigned_to.username }}
-                                                            {% else %}
-                                                                Assigned to: None
-                                                            {% endif %}
-                                                        </p>
-                                                        {% for item in card.checklist_items.all %}
-                                                            <div>
-                                                                <input type="checkbox" {% if item.is_completed %}checked{% endif %}>
-                                                                {{ item.description }}
-                                                            </div>
-                                                        {% endfor %}
-                                                        <p>
-                                                            {% if card.due_date %}
-                                                                Due date: {{ card.due_date }}
-                                                            {% else %}
-                                                                Due date: Unassigned
-                                                            {% endif %}
-                                                        </p>
-                                                    </div>
-                                            </div>
-                                        </a>
-                                    {% endif %}
-                                
-                            {% empty %}
-                                <p class="text-muted">No cards in this list.</p>
-                            {% endfor %}
-                            
-                            <button type="button" id="toggle-button-{{ card_list.id }}" class="btn btn-secondary btn-sm" onclick="toggleForm('{{ card_list.id }}')">
-                                Add Card
-                            </button>
+        {% for card_list in card_lists %}
+        <div class="col-md-2 mb-4">
+            <div class="card">
+                <div id="list-{{ card_list.id }}" class="container card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}" ondrop="handleDrop(event, {{ card_list.id }})" ondragover="allowDrop(event)">
+                    <h2 class="card-title text-center">{{ card_list.name }}</h2>
+                    {% if card_list.amount_cards >= card_list.max_cards %}
+                        <p class="text-center text-warning">Warning! Max amount of cards reached</p>
+                    {% endif %}
 
-                            <div id="form-container-{{ card_list.id }}" style="display:none;">                                
-                                <form action="" method="POST" class="mt-2">
-                                    {% csrf_token %}
-                                    <div class="mb-3">
-                                        <label for="name" class="form-label">Name:</label>
-                                        {{ form.name|add_class:"form-control" }}
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="description" class="form-label">Description:</label>
-                                        {{ form.description|add_class:"form-control" }}
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="due_date-{{ card_list.id }}" class="form-label">Due Date:</label>
-                                        <input type="datetime-local" name="due_date" class="form-control" id="due_date-{{ card_list.id }}" value="{{ form.due_date.value|default_if_none:'' }}">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="assigned_to" class="form-label">Assigned to:</label>
-                                        {{ form.assigned_to|add_class:"form-control" }}
-                                    </div>
-                                    <input type="hidden" name="card_list_id" value="{{ card_list.id }}">
-                                    <button type="submit" class="btn btn-primary btn-sm">Create</button>
-                                </form>
+                    <!-- Cards -->
+                    {% for card in card_list.filtered_cards %}
+                    <div id="card-{{ card.id }}" class="draggable mb-2 p-2 border rounded {% if card.due_date and card.due_date < get_time %}bg-danger text-white{% else %}bg-light{% endif %}" draggable="true" ondragstart="drag(event)" data-url="{% url 'update_card_position' card_id=card.id cardlist_id=card_list.id %}">
+                        <strong>{{ card.name }}</strong>
+                        {% if card.due_date and card.due_date < get_time %}
+                        <p style="color: white;"><strong>¡¡¡Tarea atrasada!!!</strong></p>
+                        {% endif %}
+                        <p>{{ card.description }}</p>
+                        <p>Assigned to: {{ card.assigned_to.username|default:"None" }}</p>
+                        <p>Due date: {{ card.due_date|default:'Unassigned' }}</p>
+                        <ul>
+                            {% for tag in card.tags.all %}
+                                <li>{{ tag.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% empty %}
+                        <p class="text-muted">No cards in this list.</p>
+                    {% endfor %}
+
+                    <!-- Add Card Form -->
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="toggleForm('{{ card_list.id }}')">Add Card</button>
+                    <div id="form-container-{{ card_list.id }}" style="display:none;">
+                        <form action="" method="POST" class="mt-2">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="name-{{ card_list.id }}">Name:</label>
+                                <input type="text" name="name" class="form-control" id="name-{{ card_list.id }}" required>
                             </div>
-                        </div>
+                            <div class="mb-3">
+                                <label for="description-{{ card_list.id }}">Description:</label>
+                                <textarea name="description" class="form-control" id="description-{{ card_list.id }}" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="due_date-{{ card_list.id }}">Due Date:</label>
+                                <input type="datetime-local" name="due_date" class="form-control" id="due_date-{{ card_list.id }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="assigned_to-{{ card_list.id }}">Assigned to:</label>
+                                <select name="assigned_to" class="form-control" id="assigned_to-{{ card_list.id }}">
+                                    <option value="">-- Select a User --</option>
+                                    {% for member in board.workspace.members.all %}
+                                        <option value="{{ member.id }}">{{ member.username }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tags-{{ card_list.id }}">Tags:</label>
+                                <select name="tags" id="tags-{{ card_list.id }}" multiple class="form-control">
+                                    {% for tag in tags %}
+                                    <option value="{{ tag.id }}">{{ tag.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <input type="hidden" name="card_list_id" value="{{ card_list.id }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                        </form>
                     </div>
                 </div>
-            {% endfor %}
+            </div>
         </div>
+        {% endfor %}
     </div>
-
 
     <script>
         function toggleForm(cardListId) {
             var formContainer = document.getElementById('form-container-' + cardListId);
-            var toggleButton = document.getElementById('toggle-button-' + cardListId);
-    
-            if (formContainer.style.display === 'none') {
-                formContainer.style.display = 'block';
-                toggleButton.textContent = 'Cancel';
-            } else {
-                formContainer.style.display = 'none';
-                toggleButton.textContent = 'Add Card';
-            }
+            formContainer.style.display = (formContainer.style.display === 'none') ? 'block' : 'none';
         }
-        function toggleAddListForm(event) {
-            event.preventDefault(); // Prevent default anchor click behavior
-            var formContainer = document.getElementById('add-list-form-container');
 
-            if (formContainer.style.display === 'none') {
-                formContainer.style.display = 'block';
-            } else {
-                formContainer.style.display = 'none';
+        function toggleAddListForm(event) {
+            event.preventDefault();
+            var formContainer = document.getElementById('add-list-form-container');
+            formContainer.style.display = (formContainer.style.display === 'none') ? 'block' : 'none';
+        }
+
+        function allowDrop(event) {
+            event.preventDefault();
+        }
+
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.id);
+        }
+
+        function handleDrop(event, cardListId) {
+            event.preventDefault();
+            var cardId = event.dataTransfer.getData("text").replace("card-", "");
+            var url = `/update_card_position/${cardId}/cardlist/${cardListId}/`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Failed to update card position');
+                }
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
             }
+            return cookieValue;
         }
     </script>
 {% endblock %}
-

@@ -1,14 +1,15 @@
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.db import IntegrityError
 from .forms import TaskForm, WorkspaceForm, BoardForm, CardForm, CardlistForm
-from .models import Board, ChecklistItem, Task, Workspace, CardList, Card
+from .models import Board, ChecklistItem, Task, Workspace, CardList, Card, Tag
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 # Create your views here.
 def home(request):
     return render(request, 'home.html')
@@ -65,7 +66,8 @@ def signout(request):
 @login_required
 def tasks(request):
     tasks = Task.objects.filter(user=request.user, datecompleted__isnull=True)
-    return render(request, 'tasks.html', {'tasks' : tasks})
+    tags = Tag.objects.all()  # Obtener todas las etiquetas
+    return render(request, 'tasks.html', {'tasks': tasks, 'tags': tags})
 
 
 @login_required
@@ -221,42 +223,58 @@ def boards(request, owner_id, workspace_id):
 @login_required
 def view_board(request, owner_id, workspace_id, board_id):
     board = get_object_or_404(Board, pk=board_id)
-
     card_lists = board.card_lists.all()
     workspace = board.workspace
-    get_time=timezone.now()
+    get_time = timezone.now()
+    tags = Tag.objects.all()
 
     if request.method == 'POST':
+        # Capturar datos del formulario
         form = CardForm(request.POST)
-        card_list_id = request.POST.get('card_list_id')
+        card_list_id = request.POST.get('card_list_id')  # Capturar el ID de la lista a la que se asignará la tarjeta
         card_list = get_object_or_404(CardList, pk=card_list_id)
-        
+
         if form.is_valid():
+            # Si el formulario es válido, crear la tarjeta
             new_card = form.save(commit=False)
             new_card.card_list = card_list
-            new_card.due_date = form.cleaned_data.get('due_date')  # Assign the due date
-            new_card.assigned_to = form.cleaned_data.get('assigned_to')  # Assign the user based on form data
+            new_card.due_date = form.cleaned_data.get('due_date')
+            new_card.assigned_to = form.cleaned_data.get('assigned_to')
             new_card.save()
-            card_list = get_object_or_404(CardList, pk=new_card.get_card_list())
+            form.save_m2m()  # Guardar las etiquetas (tags)
+            
+            # Incrementar el contador de tarjetas de la lista
             card_list.increse_amount()
             card_list.save()
-            new_checklist_item_description = request.POST.get('new_checklist_item')
-            if new_checklist_item_description:
-                ChecklistItem.objects.create(card=new_card, description=new_checklist_item_description)
-            print(f"Card created with due date: {new_card.due_date}")  # Debugging line
-            return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board.id)    
+            
+            return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board.id)
+        else:
+            print(form.errors)  # Mostrar errores si el formulario no es válido (para depuración)
+
     else:
         form = CardForm(workspace=workspace)
-        
+
+    # Filtrar tarjetas si hay filtros activos
+    filter_tag = request.GET.get('filter_tag')
+    assigned_user = request.GET.get('assigned_user')
+
+    for card_list in card_lists:
+        cards = card_list.cards.all()
+        if filter_tag:
+            cards = cards.filter(tags__id=filter_tag)
+        if assigned_user:
+            cards = cards.filter(assigned_to__id=assigned_user)
+        card_list.filtered_cards = cards
+
     return render(request, 'view_board.html', {
         'board': board,
         'card_lists': card_lists,
         'form': form,
+        'tags': tags,
         'owner_id': owner_id,
         'workspace_id': workspace_id,
-        'get_time':get_time
+        'get_time': get_time
     })
-
 
 @login_required
 def create_board(request, owner_id, workspace_id):
@@ -585,3 +603,51 @@ def stats(request,owner_id,workspace_id, board_id):
         'members':list(member_amounts.keys()),
         'member_amounts':list(member_amounts.values())
     })
+
+# Vista para filtrar tarjetas por etiqueta
+@login_required
+def filter_by_tag(request, tag_id):
+    tag = get_object_or_404(Tag, pk=tag_id)
+    cards = tag.cards.all()
+    return render(request, 'filter_by_tag.html', {'tag': tag, 'cards': cards})
+
+# Vista para crear etiquetas
+@login_required
+def create_tag(request):
+    if request.method == 'POST':
+        form = TagForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('tags')  # Redirige a una lista de etiquetas
+    else:
+        form = TagForm()
+    return render(request, 'create_tag.html', {'form': form})
+
+# Vista para listar etiquetas
+@login_required
+def tags(request):
+    tags = Tag.objects.all()
+    return render(request, 'tags.html', {'tags': tags})
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+
+@login_required
+def update_card_position(request, card_id, cardlist_id):
+    if request.method == 'POST':
+        try:
+            card = get_object_or_404(Card, pk=card_id)
+            cardlist = get_object_or_404(CardList, pk=cardlist_id)
+            
+            # Actualizar la lista de la tarjeta
+            card.card_list = cardlist
+            card.save()
+
+            return JsonResponse({'success': True, 'message': 'Card position updated successfully'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=400)
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=405)

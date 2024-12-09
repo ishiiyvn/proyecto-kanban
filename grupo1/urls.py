@@ -44,5 +44,10 @@ urlpatterns = [
     path('tasks/<int:task_id>/delete', views.delete_task, name='delete_task'),
     path('signin/', views.signin, name='signin'),
     path('logout/', views.signout, name='logout'),
-    path('accounts/', include('allauth.urls'))
+    path('accounts/', include('allauth.urls')),
+    path('tags/', views.tags, name='tags'),  # Ruta para listar todas las etiquetas
+    path('tags/create/', views.create_tag, name='create_tag'),  # Ruta para crear una etiqueta
+    path('tags/<int:tag_id>/', views.filter_by_tag, name='filter_by_tag'),  # Ruta para filtrar tarjetas por etiqueta
+    path('update_card_position/<int:card_id>/cardlist/<int:cardlist_id>/', views.update_card_position, name='update_card_position'),
+    
 ]

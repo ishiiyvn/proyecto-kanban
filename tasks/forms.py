@@ -1,8 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import ChecklistItem, Task, Workspace, Board, Card, CardList
-
-
+from .models import ChecklistItem, Task, Workspace, Board, Card, CardList, Tag
 
 class TaskForm(forms.ModelForm):
     class Meta:
@@ -16,24 +14,26 @@ class WorkspaceForm(forms.ModelForm):
             widget=forms.SelectMultiple(attrs={'class' : 'formcontrol'}),
             required=False
         )
-        
+
         model = Workspace
         fields = ['name', 'members']
-
 
 class BoardForm(forms.ModelForm):
     class Meta: 
         model = Board
         fields = ['name']
-        
-        
 
 class CardForm(forms.ModelForm):
     checklist = forms.CharField(widget=forms.Textarea, required=False)
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
 
     class Meta:
         model = Card
-        fields = ['name', 'description', 'due_date', 'checklist', 'assigned_to']
+        fields = ['name', 'description', 'due_date', 'checklist', 'assigned_to', 'tags']
         widgets = {
             'due_date': forms.DateTimeInput(attrs={
                 'type': 'datetime-local',
@@ -47,17 +47,18 @@ class CardForm(forms.ModelForm):
         if workspace:
             # Filter the queryset for the assigned_to field
             self.fields['assigned_to'].queryset = workspace.members.all()
-    
 
 class ChecklistItemForm(forms.ModelForm):
     class Meta:
         model = ChecklistItem
         fields = ['description', 'is_completed']
-        
 
 class CardlistForm(forms.ModelForm):
     class Meta:
         model = CardList
         fields = ['name', 'max_cards']  # Include any other fields as necessary
 
-
+class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        fields = ['name']

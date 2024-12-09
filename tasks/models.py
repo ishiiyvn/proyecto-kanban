@@ -10,7 +10,12 @@ class Workspace(models.Model):
     def __str__(self):
         return self.name
 
-    
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class Task(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -29,7 +34,6 @@ class Board(models.Model):
     def __str__(self):
         return self.name
 
-    
 class CardList(models.Model):
     name = models.CharField(max_length=25)
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='card_lists')
@@ -44,7 +48,6 @@ class CardList(models.Model):
 
     def __str__(self):
         return self.name
-    
 
 class Card(models.Model):
     name = models.CharField(max_length=255)
@@ -53,14 +56,13 @@ class Card(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     card_list = models.ForeignKey(CardList, on_delete=models.CASCADE, related_name='cards')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cards')    
-
+    tags = models.ManyToManyField(Tag, blank=True, related_name='cards')
 
     def get_card_list(self):
         return self.card_list.pk
 
     def __str__(self):
         return self.name
-    
 
 class ChecklistItem(models.Model):
     card = models.ForeignKey(Card, related_name='checklist_items', on_delete=models.CASCADE)
@@ -69,5 +71,3 @@ class ChecklistItem(models.Model):
 
     def __str__(self):
         return self.description
-
-
