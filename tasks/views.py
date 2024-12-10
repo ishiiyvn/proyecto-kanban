@@ -165,28 +165,59 @@ def create_workspace(request):
 
 @login_required
 def update_workspace(request, owner_id, workspace_id):
+    # Verificar que el usuario actual tiene permisos
     if request.user.id != owner_id:
         return HttpResponseForbidden('You are not allowed to edit this workspace.')
     
+    # Obtener el workspace o retornar 404 si no existe
     workspace = get_object_or_404(Workspace, pk=workspace_id, owner=request.user)
     
+    # Obtener los usuarios disponibles (que no están ya en el workspace)
+    available_members = User.objects.exclude(id__in=workspace.members.values_list('id', flat=True))
+    
     if request.method == 'GET':
+        # Mostrar el formulario de edición con datos existentes
         form = WorkspaceForm(instance=workspace)
         return render(request, 'update_workspace.html', {
             'form': form,
-            'workspace': workspace
+            'workspace': workspace,
+            'available_members': available_members
         })
     else:
         try:
+            # Crear el formulario con los datos enviados
             form = WorkspaceForm(request.POST, instance=workspace)
-            form.save()
-            return redirect('workspaces')
-        except ValueError:
+            
+            if form.is_valid():
+                # Guardar los datos básicos del workspace
+                workspace = form.save()
+
+                # Obtener los IDs de los miembros seleccionados en el formulario
+                selected_members_ids = request.POST.getlist('members')
+
+                # Actualizar los miembros del workspace (remplaza todos los anteriores)
+                workspace.members.set(selected_members_ids)
+                
+                # Redirigir al listado de workspaces
+                return redirect('workspaces')
+            else:
+                # Si los datos no son válidos, mostrar errores
+                return render(request, 'update_workspace.html', {
+                    'form': form,
+                    'workspace': workspace,
+                    'available_members': available_members,
+                    'error': 'Please provide valid data.'
+                })
+        except Exception as e:
+            # Manejo de errores inesperados
             return render(request, 'update_workspace.html', {
                 'form': form,
                 'workspace': workspace,
-                'error': 'Please provide valid data'
+                'available_members': available_members,
+                'error': f'An unexpected error occurred: {e}'
             })
+
+
 
 
 @login_required
