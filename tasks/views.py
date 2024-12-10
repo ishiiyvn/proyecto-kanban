@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
+from django.db.models import Q
 # Create your views here.
 def home(request):
     return render(request, 'home.html')
@@ -136,7 +137,7 @@ def delete_task(request, task_id):
 
 @login_required
 def workspaces(request):
-    workspaces = Workspace.objects.filter(owner=request.user)
+    workspaces = Workspace.objects.filter(Q(members=request.user) | Q(owner=request.user)).distinct()
     return render(request, 'workspaces.html', {'workspaces' : workspaces})
 
 
@@ -207,8 +208,8 @@ def delete_workspace(request, owner_id, workspace_id):
 
 @login_required
 def boards(request, owner_id, workspace_id):
-    if request.user.id != owner_id:
-        return HttpResponseForbidden('You are not allowed to edit this workspace.')
+    #if request.user.id != owner_id:
+     #   return HttpResponseForbidden('You are not allowed to edit this workspace.')
     
     workspace = get_object_or_404(Workspace, pk=workspace_id)
     
