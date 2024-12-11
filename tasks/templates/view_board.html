@@ -89,6 +89,7 @@
                         <p>{{ card.description }}</p>
                         <p>Assigned to: {{ card.assigned_to.username|default:"None" }}</p>
                         <p>Due date: {{ card.due_date|default:'Unassigned' }}</p>
+                        <p><small>Created: {{ card.created|date:"Y-m-d H:i" }}</small></p> <!-- Agregado el campo 'created' -->
                         <ul>
                             {% for tag in card.tags.all %}
                                 <li>{{ tag.name }}</li>
