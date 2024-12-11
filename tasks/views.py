@@ -673,8 +673,12 @@ def update_card_position(request, card_id, cardlist_id):
     if request.method == 'POST':
         try:
             card = get_object_or_404(Card, pk=card_id)
+            firstcardlist = get_object_or_404(CardList, pk=card.get_card_list())
+            firstcardlist.decrease_amount()
+            firstcardlist.save()
             cardlist = get_object_or_404(CardList, pk=cardlist_id)
-            
+            cardlist.increse_amount()
+            cardlist.save()
             # Actualizar la lista de la tarjeta
             card.card_list = cardlist
             card.save()

@@ -80,7 +80,8 @@
 
                     <!-- Cards -->
                     {% for card in card_list.filtered_cards %}
-                    <div id="card-{{ card.id }}" class="draggable mb-2 p-2 border rounded {% if card.due_date and card.due_date < get_time %}bg-danger text-white{% else %}bg-light{% endif %}" draggable="true" ondragstart="drag(event)" data-url="{% url 'update_card_position' card_id=card.id cardlist_id=card_list.id %}">
+                    <div id="card-{{ card.id }}" class="draggable clickable mb-2 p-2 border rounded {% if card.due_date and card.due_date < get_time %}bg-danger text-white{% else %}bg-light{% endif %}" draggable="true" ondragstart="drag(event)" 
+                    data-url="{% url 'update_card_position' card_id=card.id cardlist_id=card_list.id %}" data-url-test="{% url 'update_card' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id card_id=card.id %}">
                         <strong>{{ card.name }}</strong>
                         {% if card.due_date and card.due_date < get_time %}
                         <p style="color: white;"><strong>¡¡¡Tarea atrasada!!!</strong></p>
@@ -161,7 +162,7 @@
         function drag(event) {
             event.dataTransfer.setData("text", event.target.id);
         }
-
+ 
         function handleDrop(event, cardListId) {
             event.preventDefault();
             var cardId = event.dataTransfer.getData("text").replace("card-", "");
