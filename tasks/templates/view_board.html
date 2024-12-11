@@ -68,28 +68,32 @@
     </div>
 
     <!-- Card Lists -->
-    <div class="row">
+    <div class="row" id="card-lists-container">
         {% for card_list in card_lists %}
-        <div class="col-md-2 mb-4">
+        <div id="list-{{ card_list.id }}" 
+             class="col-md-2 mb-4" 
+             draggable="true" 
+             ondragstart="dragList(event)" 
+             ondrop="handleListDrop(event, {{ card_list.id }})" 
+             ondragover="allowDrop(event)">
             <div class="card">
                 <div id="list-{{ card_list.id }}" class="container card-body {% if card_list.amount_cards >= card_list.max_cards %}bg-warning{% endif %}" ondrop="handleDrop(event, {{ card_list.id }})" ondragover="allowDrop(event)">
-                    <h2 class="card-title text-center">{{ card_list.name }}</h2>
+                    <h2 class="card-title text-center"><a href="{% url 'update_cardlist' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id cardlist_id=card_list.id%}">{{ card_list.name }}</a></h2>
                     {% if card_list.amount_cards >= card_list.max_cards %}
                         <p class="text-center text-dark fw-bold"">Warning! Max amount of cards reached</p>
                     {% endif %}
 
                     <!-- Cards -->
                     {% for card in card_list.filtered_cards %}
-                    <div id="card-{{ card.id }}" class="draggable clickable mb-2 p-2 border rounded {% if card.due_date and card.due_date < get_time %}bg-danger text-white{% else %}bg-light{% endif %}" draggable="true" ondragstart="drag(event)" 
-                    data-url="{% url 'update_card_position' card_id=card.id cardlist_id=card_list.id %}" data-url-test="{% url 'update_card' owner_id=board.workspace.owner.id workspace_id=board.workspace.id board_id=board.id card_id=card.id %}">
-                        <strong>{{ card.name }}</strong>
+                    <div id="card-{{ card.id }}" class="draggable mb-2 p-2 border rounded {% if card.due_date and card.due_date < get_time %}bg-danger text-white{% else %}bg-light{% endif %}" draggable="true" ondragstart="drag(event)" data-url="{% url 'update_card_position' card_id=card.id cardlist_id=card_list.id %}">
+                        <strong> <a href="{% url 'update_card' owner_id=owner_id workspace_id=workspace_id board_id=board.id card_id=card.id %}">{{ card.name }}</a></strong>
                         {% if card.due_date and card.due_date < get_time %}
                         <p style="color: white;"><strong>¡¡¡Tarea atrasada!!!</strong></p>
                         {% endif %}
                         <p>{{ card.description }}</p>
                         <p>Assigned to: {{ card.assigned_to.username|default:"None" }}</p>
-                        <p>Due date: {{ card.due_date|default:'Unassigned' }}</p>
-                        <p><small>Created: {{ card.created|date:"Y-m-d H:i" }}</small></p> <!-- Agregado el campo 'created' -->
+                        <p>Created: {{card.created}}</p>
+                        <p required>Due date: {{ card.due_date|default:'Unassigned' }}</p>
                         <ul>
                             {% for tag in card.tags.all %}
                                 <li>{{ tag.name }}</li>
@@ -163,7 +167,31 @@
         function drag(event) {
             event.dataTransfer.setData("text", event.target.id);
         }
- 
+
+        function dragList(event) {
+            event.dataTransfer.setData("text", event.target.id);        
+        }
+
+        function handleListDrop(event, cardListId) {
+            event.preventDefault();
+            var draggedListId = event.dataTransfer.getData("text").replace("list-", "");
+            
+            var url = `/update_list_position/${draggedListId}/cardlist/${cardListId}/`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    console.error('Failed to update list position');
+                }
+            });
+        }
+
         function handleDrop(event, cardListId) {
             event.preventDefault();
             var cardId = event.dataTransfer.getData("text").replace("card-", "");

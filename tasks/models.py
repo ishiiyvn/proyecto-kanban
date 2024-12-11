@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -52,7 +53,7 @@ class CardList(models.Model):
 class Card(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    due_date = models.DateTimeField(blank=True, null=True)  # New field for due date
+    due_date = models.DateTimeField(blank=True, null= False, default='1900-01-01 00:00')  # New field for due date
     created = models.DateTimeField(auto_now_add=True)
     card_list = models.ForeignKey(CardList, on_delete=models.CASCADE, related_name='cards')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cards')    

@@ -574,13 +574,54 @@ def update_card(request, owner_id, workspace_id, board_id, card_id):
         'board_id': board_id
     })
 
-def update_cardlist(request, owner_id, workspace_id, board_id, card_id, cardlist_id):
-    card = get_object_or_404(Card, pk=card_id)
+@login_required
+def update_cardlist(request, owner_id, workspace_id, board_id, cardlist_id):
+    board = get_object_or_404(Board, pk=board_id)
     cardlist = get_object_or_404(CardList, pk=cardlist_id)
+
     if request.method == 'POST':
-        card.card_list = cardlist
-        card.save()
+        cardlist.name = request.POST.get('name', cardlist.name)  # Actualizar el nombre
+        cardlist.max_cards = request.POST.get('max_cards', cardlist.max_cards)  # Actualizar la posición
+        cardlist.save()
         return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+
+    # Comprobar valores antes de renderizar
+    print("Board:", board)
+    print("Cardlist:", cardlist)
+    print("Owner ID:", owner_id)
+    print("Workspace ID:", workspace_id)
+
+    # Renderizar la vista para solicitudes GET
+    return render(request, 'update_cardlist.html', {
+        'board': board,
+        'cardlist': cardlist,
+        'owner_id': owner_id,
+        'workspace_id': workspace_id,
+    })
+    
+@login_required
+def delete_cardlist(request, owner_id, workspace_id, board_id, cardlist_id):
+    # Get the card list or return 404 if not found
+    cardlist = get_object_or_404(CardList, pk=cardlist_id, board__id=board_id)
+    board = get_object_or_404(Board, id=board_id)
+    workspace = get_object_or_404(Workspace, id=workspace_id, owner__id=owner_id)
+
+    if request.method == 'POST':
+        # Delete the card list
+        cardlist.delete()
+        return redirect('view_board', owner_id=owner_id, workspace_id=workspace_id, board_id=board_id)
+
+    # Render the confirmation page for GET request
+    return render(request, 'delete_cardlist.html', {
+        'cardlist': cardlist,
+        'owner_id': owner_id,
+        'workspace_id': workspace_id,
+        'board_id': board_id,
+        'workspace': workspace,
+        'board': board,
+    })
+
+
 
 @login_required
 def delete_card(request, owner_id, workspace_id, board_id, card_id):
